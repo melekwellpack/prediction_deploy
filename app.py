@@ -4,7 +4,7 @@ from flask_cors import CORS
 import os
 
 # Import your three Blueprints
-from app           import generate_sms_api   # your SMS‐generation blueprint
+from fpred           import generate_sms_api   # your SMS‐generation blueprint
 from flask_app     import predict_bp         # your prediction blueprint
 from schedule_app   import schedule_bp
 
