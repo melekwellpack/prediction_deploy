@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart SMS Campaign Builder</title>
+    <meta name="description" content="Create optimized SMS marketing campaigns in seconds" />
+    <meta name="author" content="SMS Genius Builder" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.gpteng.co/gptengineer.js" type="module"></script>
+
+    
+    <style>
+      body {
+        font-family: 'Inter', sans-serif;
+        background-color: rgb(248, 250, 252);
+      }
+      
+      .tab-content {
+        display: none;
+      }
+      
+      .tab-content.active {
+        display: block;
+      }
+      
+      .tab-trigger {
+        color: #64748b;
+        position: relative;
+        font-weight: 500;
+      }
+      
+      .tab-trigger.active {
+        color: #F6A203;
+        border-bottom: 2px solid #F6A203;
+      }
+      
+      .phone-mockup {
+        border: 4px solid #1f2937;
+        border-radius: 40px;
+        padding: 12px;
+        background-color: white;
+        margin: 0 auto;
+        max-width: 280px;
+        height: 560px;
+      }
+      
+      /* Toggle Switch Styles */
+      .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 48px;
+        height: 24px;
+      }
+      
+      .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+      
+      .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 24px;
+      }
+      
+      .toggle-slider:before {
+        position: absolute;
+        content: "";
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+      }
+      
+      input:checked + .toggle-slider {
+        background-color: #F6A203;
+      }
+      
+      input:checked + .toggle-slider:before {
+        transform: translateX(24px);
+      }
+      
+      /* Date and time selection styles */
+      .date-option {
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+      }
+      
+      .date-option:hover:not(.date-selected) {
+        background-color: #f8fafc;
+      }
+      
+      .date-selected {
+        border-color: #F6A203;
+        background-color: #eef2ff;
+      }
+      
+      .success-circle {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+      }
+      
+      .circle-bg {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px solid #e2e8f0;
+        border-radius: 50%;
+      }
+      
+      .circle-progress {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border: 2px solid #F6A203;
+        border-radius: 50%;
+        clip: rect(0px, 40px, 40px, 20px);
+        transform: rotate(0deg);
+      }
+      
+      .time-slot {
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+      }
+      
+      .time-slot:hover:not(.time-selected) {
+        background-color: #f8fafc;
+      }
+      
+      .time-selected {
+        border-color: #F6A203;
+        background-color: #eef2ff;
+      }
+
+      .timing-selected {
+        border-color: #F6A203 !important;
+        background-color: #fffbea !important;
+      }
+      
+      .recommended-badge {
+        background-color: #F6A203;
+        color: white;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 12px;
+        position: absolute;
+        top: -8px;
+        right: -8px;
+      }
+      /* 1) make the results container a positioning context */
+      #aiTimingResults {
+        position: relative;
+      }
+
+      /* 2) spinner overlay by default */
+      #aiTimingResults::before {
+        content: "";
+        position: absolute;
+        inset: 0;                   /* top/right/bottom/left = 0 */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255,255,255,0.8);
+        z-index: 10;
+
+        /* spinner styling */
+        border: 3px solid #eee;
+        border-top: 3px solid #666;
+        border-radius: 50%;
+        width: 24px;
+        height: 24px;
+        animation: spin 0.8s linear infinite;
+      }
+
+      /* 3) once a result card appears, hide the overlay */
+      #aiTimingResults:has(.border)::before {
+        display: none;
+      }
+
+      /* keyframes for the spin */
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="min-h-screen bg-slate-50 pb-12">
+      <div class="max-w-7xl mx-auto pt-8 px-4">
+        <div class="bg-white rounded-lg shadow-sm overflow-hidden">
+          <!-- Header -->
+          <header class="bg-[#F6A203] text-white p-6 rounded-t-md">
+            <div class="flex flex-col md:flex-row md:justify-between md:items-center">
+              <div>
+                <h1 class="text-3xl md:text-4xl font-bold">
+                  Smart SMS Campaign Builder
+                </h1>
+                <p class="mt-2 text-lg opacity-90">
+                  Configure your SMS campaign details and generate optimized messages in seconds.
+                </p>
+              </div>
+              <div class="mt-4 md:mt-0 bg-indigo-800/50 p-3 rounded-lg">
+                <p class="text-sm md:text-base">
+                  Pro Tips: Keep messages under 149 characters for single SMS
+                </p>
+              </div>
+            </div>
+          </header>
+          
+          <div class="p-4 md:p-6">
+            <!-- Tabs -->
+            <div class="w-full">
+              <div class="w-full justify-start border-b rounded-none bg-white mb-8 px-0 h-auto">
+                <button class="tab-trigger active flex-1 md:flex-none rounded-none py-4 px-12 text-lg font-medium" data-tab="input">Input</button>
+                <button class="tab-trigger flex-1 md:flex-none rounded-none py-4 px-12 text-lg font-medium" data-tab="preview">Message Preview</button>
+                <button class="tab-trigger flex-1 md:flex-none rounded-none py-4 px-12 text-lg font-medium" data-tab="scheduling">Scheduling</button>
+              </div>
+              
+              <!-- Input Tab Content -->
+              <div class="tab-content active px-2" id="input-tab">
+                <div class="space-y-6">
+                  <!-- Campaign Name -->
+                  <div class="space-y-2">
+                    <label for="campaignName" class="text-base font-medium text-gray-700">
+                      Brand Name
+                    </label>
+                    <input
+                      id="campaignName"
+                      type="text"
+                      placeholder="Enter campaign name"
+                      class="w-full bg-white border border-gray-300 rounded-md p-2"
+                    />
+                  </div>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
+                    <!-- Left Column -->
+                    <div class="space-y-6">
+                      <!-- SMS Type -->
+                      <div class="space-y-2">
+                        <label for="smsType" class="text-base font-medium text-gray-700">
+                          Type of SMS
+                        </label>
+                        <div class="relative w-full">
+                          <select id="smsType" class="w-full bg-white border border-gray-300 rounded-md p-2">
+                            <option value="" disabled selected>Select</option>
+                            <option value="landing_page">SMS+Landing page</option>
+                            <option value="short_link">SMS avec lien court</option>
+                            <option value="simple">SMS simple</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Industry Sector -->
+                      <div class="space-y-2">
+                        <label for="industrySector" class="text-base font-medium text-gray-700">
+                          Secteur
+                        </label>
+                        <div class="relative w-full">
+                          <select id="industrySector" class="w-full bg-white border border-gray-300 rounded-md p-2">
+                            <option value="" disabled selected>Select</option>
+                            <option value="amenagement">Aménagement, intérieur, travaux</option>
+                            <option value="sante">Santé</option>
+                            <option value="habillement">Habillement et joaillerie</option>
+                            <option value="automobile">Automobile et Transport</option>
+                            <option value="distribution_alimentaire">Distribution alimentaire</option>
+                            <option value="distribution_non_alimentaire">Distribution non alimentaire</option>
+                            <option value="sport">Sport et équipement</option>
+                            <option value="loisirs">Loisirs et Culture</option>
+                            <option value="hotellerie">Hotellerie et restauration</option>
+                            <option value="services">Services Professionnels et personnels</option>
+                            <option value="immobilier">Immobilier</option>
+                            <option value="institution">Institution et collectivités</option>
+                            <option value="finance">Finance et assurance</option>
+                            <option value="technologie">Technologie et Communication</option>
+                            <option value="ameublement">Ameublement</option>
+                            <option value="decoration">Décoration</option>
+                            <option value="service_public">Service Public</option>
+                            <option value="evenementiel">Evenementiel</option>
+                            <option value="divertissement">Divertissement et Loisirs</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Type of Operation -->
+                      <div class="space-y-2">
+                        <label for="operationType" class="text-base font-medium text-gray-700">
+                          Type of Operation
+                        </label>
+                        <div class="relative w-full">
+                          <select id="operationType" class="w-full bg-white border border-gray-300 rounded-md p-2">
+                            <option value="prospection">Prospection</option>
+                            <option value="b2b">B2B</option>
+                            <option value="fid">FID</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div class="space-y-6">
+                      <!-- Purpose of SMS -->
+                      <div class="space-y-2">
+                        <label for="purpose" class="text-base font-medium text-gray-700">
+                          Purpose of SMS
+                        </label>
+                        <div class="relative w-full">
+                          <select id="purpose" class="w-full bg-white border border-gray-300 rounded-md p-2">
+                            <option value="" disabled selected>Select</option>
+                            <option value="drive_web">Drive to web</option>
+                            <option value="drive_store">Drive to store</option>
+                            <option value="app_dl">App Download</option>
+                            <option value="information">Information</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Keywords / Message Content Brief -->
+                      <div class="space-y-2">
+                        <label for="keywords" class="text-base font-medium text-gray-700">
+                          Message Content Brief
+                        </label>
+                        <textarea
+                          id="keywords"
+                          placeholder="Describe what your SMS should contain..."
+                          class="resize-none h-36 bg-white w-full border border-gray-300 rounded-md p-2"
+                        ></textarea>
+                        <p class="text-xs text-slate-500">Add details about what your message should contain, use ' , ' as a separetor</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Toggle Buttons -->
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                    <!-- Include Link Toggle -->
+                    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-md">
+                      <label for="include-link" class="text-base font-medium text-gray-700 flex items-center">
+                        Include Link in SMS
+                        <span class="ml-1 text-gray-400 text-xs rounded-full border border-gray-300 w-4 h-4 flex items-center justify-center">?</span>
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="include-link">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+  
+                    <!-- Include Holidays Toggle -->
+                    <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-md">
+                      <label for="include-holidays" class="text-base font-medium text-gray-700 flex items-center">
+                        Include Holidays
+                        <span class="ml-1 text-gray-400 text-xs rounded-full border border-gray-300 w-4 h-4 flex items-center justify-center">?</span>
+                      </label>
+                      <label class="toggle-switch">
+                        <input type="checkbox" id="include-holidays">
+                        <span class="toggle-slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <!-- Link Type - Only shows when Include Link is toggled on -->
+                  <div id="link-type-container" class="space-y-2 hidden">
+                    <label for="linkType" class="text-base font-medium text-gray-700">
+                      Type of Short Link
+                    </label>
+                    <div class="relative w-full">
+                      <select id="linkType" class="w-full bg-white border border-gray-300 rounded-md p-2">
+                        <option value="" disabled selected>Select</option>
+                        <option value="clic">c-lic</option>
+                        <option value="clic2">cli-c</option>
+                        <option value="externe">externe</option>
+                        <option value="rsms">rsms</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Holiday Date - Only shows when Include Holidays is toggled on -->
+                  <div id="holiday-date-container" class="space-y-2 hidden">
+                    <label for="holidayDate" class="text-base font-medium text-gray-700">
+                      Holiday Date
+                    </label>
+                    <div class="relative">
+                      <input 
+                        type="date" 
+                        id="holidayDate" 
+                        class="w-full bg-white border border-gray-300 rounded-md p-2"
+                      />
+                    </div>
+                  </div>
+
+                  <!-- Date Range for Scheduling - Always visible -->
+                  <div class="space-y-2">
+                    <label class="text-base font-medium text-gray-700">
+                      Campaign Date Range (Should not exceed 7 days)
+                    </label>
+                    <div class="flex space-x-4">
+                      <div class="relative w-1/2">
+                        <label for="date-debut" class="block text-sm text-gray-700">Start Date</label>
+                        <input 
+                          type="date" 
+                          id="date-debut" 
+                          class="w-full bg-white border border-gray-300 rounded-md p-2"
+                          required
+                        />
+                      </div>
+                      <div class="relative w-1/2">
+                        <label for="date-fin" class="block text-sm text-gray-700">End Date</label>
+                        <input 
+                          type="date" 
+                          id="date-fin" 
+                          class="w-full bg-white border border-gray-300 rounded-md p-2"
+                          required
+                        />
+                      </div>
+                    </div>
+                    <p class="text-xs text-slate-500">This date range will be used for scheduling predictions</p>
+                  </div>
+
+                  <!-- Generate SMS Button -->
+                  <div class="mt-6">
+                    <button 
+                      id="generate-sms-btn"
+                      class="bg-[#F6A203] hover:bg-[#EB9800] text-white px-6 py-2 rounded-md font-medium transition-colors flex items-center"
+                    >
+                      Generate SMS
+                      <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Message Preview Tab Content -->
+              <div class="tab-content px-2" id="preview-tab">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <!-- Left side - Generated Messages -->
+                  <div class="space-y-6">
+                    <h2 class="text-xl font-semibold">Generated Messages</h2>
+              
+                    <!-- Message Options -->
+                    <div id="message-options" class="space-y-4">
+                      <!-- Message options will be inserted here -->
+                    </div>
+                    
+                    <!-- Regenerate button -->
+                    <!--
+                    <button class="border border-gray-300 rounded-md px-4 py-2 flex items-center gap-2 bg-white">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 0 0-9-9 9 9 0 0 0-9 9 9 9 0 0 0 9 9 9 9 0 0 0 9-9Z"></path><path d="m3 12 3-3 3 3"></path><path d="m21 12-3-3-3 3"></path><path d="M12 20v-8"></path><path d="M12 4v4"></path></svg>
+                      Regenerate Options
+                    </button>
+                    -->
+                  </div>
+              
+                  <!-- Right side - Phone Preview -->
+                  <div class="space-y-6">
+                    <h2 class="text-xl font-semibold">Phone Preview</h2>
+                    <div class="phone-mockup">
+                      <div class="bg-slate-100 rounded-t-3xl p-4">
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 bg-slate-300 rounded-full flex items-center justify-center text-xs font-bold">YB</div>
+                          <div>
+                            <p class="font-medium">YourBrand</p>
+                            <p class="text-xs text-slate-500">SMS • Now</p>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="mt-4 px-2">
+                        <div class="bg-slate-200 p-4 rounded-2xl max-w-[85%] ml-auto">
+                          <p id="phone-message-preview" class="text-sm">Your message will appear here after generation</p>
+                        </div>
+                      </div>
+                    </div>
+              
+                    <div class="flex justify-between mt-8">
+                      <!--<button class="border border-gray-300 rounded-md px-4 py-2 bg-white" id="back-to-input">Back to Input</button>-->
+                      <button class="bg-[#F6A203] hover:bg-[#EB9800] text-white px-4 py-2 rounded-md flex items-center" id="continue-to-scheduling">
+                        Continue to Scheduling 
+                        <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Scheduling Tab Content -->
+              <div class="tab-content px-2" id="scheduling-tab">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <!-- Left Column -->
+                  <div class="space-y-6">
+                    <h2 class="text-xl font-semibold">Campaign Scheduling</h2>
+                    
+                    <!-- Date Selection Card -->
+                    <div class="shadow-sm rounded-lg border">
+                      <div class="p-6">
+                        <h3 class="text-lg font-medium mb-4 flex items-center">
+                          Recommended Dates
+                        </h3>
+                        <div class="space-y-4" id="date-options">
+                          <!-- Date options will be dynamically generated -->
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Time Selection Card - Only shown when a date is selected -->
+                    <div id="time-selection-container" class="shadow-sm rounded-lg border hidden">
+                      <div class="p-6">
+                        <h3 class="text-lg font-medium mb-4 flex items-center">
+                          Select Time for&nbsp;<span id="selected-date-display">Monday, May 6</span>
+                        </h3>
+                        <div class="space-y-3">
+                          <div class="mb-4">
+                            <p class="text-sm text-indigo-600 font-medium">Top recommended times:</p>
+                          </div>
+                          <div id="time-slots-container">
+                            <!-- Time slots will be dynamically generated -->
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <!-- Right Column -->
+                  <div class="space-y-6">
+                    <h2 class="text-xl font-semibold">Campaign Summary</h2>
+
+                    <!-- ai section pred -->
+                    <div class="shadow-sm rounded-lg border mt-6">
+                      <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                          <h3 class="text-lg font-medium">AI Timing Analysis</h3>
+                        </div>
+                        <div class="space-y-4 mt-4" id="aiTimingResults">
+                          <p class="text-sm text-slate-600">AI has predicted the optimal times to send this message:</p>
+                          
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Monday, May 6</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>10:00 AM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Tuesday, May 7</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>2:30 PM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Thursday, May 9</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>9:15 AM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="text-xs text-slate-500 mt-2 italic">
+                            These times are predicted to have the highest engagement rates based on AI's opinion.
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    
+                    <!-- custom model section -->
+                    <div class="shadow-sm rounded-lg border mt-6">
+                      <div class="p-6">
+                        <div class="flex justify-between items-center mb-4">
+                          <h3 class="text-lg font-medium">Model Timing Analysis</h3>
+                        </div>
+
+                        <div class="space-y-4 mt-4">
+                          <p class="text-sm text-slate-600">Your custom model has analyzed historical performance and identified the optimal times:</p>
+
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Wednesday, May 8</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>11:00 AM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Wednesday, May 8</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>11:00 AM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                            <div class="flex justify-between items-center">
+                              <div class="flex space-x-4">
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                                    <line x1="16" x2="16" y1="2" y2="6"></line>
+                                    <line x1="8" x2="8" y1="2" y2="6"></line>
+                                    <line x1="3" x2="21" y1="10" y2="10"></line>
+                                  </svg>
+                                  <span class="font-medium">Wednesday, May 8</span>
+                                </div>
+                                <div class="flex items-center text-indigo-800">
+                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                  </svg>
+                                  <span>11:00 AM</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    
+                    <!-- Success Rate Circle -->
+                    
+                    <div class="shadow-sm rounded-lg border">
+                      <div class="p-6">
+                        <div class="flex justify-between items-start mb-6">
+                          <h3 class="text-lg font-medium">Campaign Details</h3>
+                        </div>
+                        
+                        <div class="space-y-4">
+                          <!-- Message -->
+                          <div>
+                            <p class="text-sm text-slate-500 mb-1">Message</p>
+                            <p id="summary-message" class="font-medium text-indigo-600"></p>
+                          </div>
+                          
+                          <!-- Date and Time -->
+                          <div class="grid grid-cols-2 gap-4">
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">Date</p>
+                              <p id="summary-date" class="font-medium">Select a date</p>
+                            </div>
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">Time</p>
+                              <p id="summary-time" class="font-medium">Select a time</p>
+                            </div>
+                          </div>
+                          
+                          <!-- Campaign details from first tab -->
+                          <div class="grid grid-cols-2 gap-4">
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">SMS Type</p>
+                              <p id="summary-sms-type" class="font-medium">---</p>
+                            </div>
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">Sector</p>
+                              <p id="summary-sector" class="font-medium">---</p>
+                            </div>
+                          </div>
+                          
+                          <div class="grid grid-cols-2 gap-4">
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">Type of Operation</p>
+                              <p id="summary-type-of-operation" class="font-medium">---</p>
+                            </div>
+                            <div>
+                              <p class="text-sm text-slate-500 mb-1">Purpose of SMS</p>
+                              <p id="summary-purpose-of-sms" class="font-medium">---</p>
+                            </div>
+                          </div>
+                          
+                    
+                    <!-- Export Data Button -->
+                    <button 
+                      id="export-data-btn"
+                      class="w-full bg-[#F6A203] hover:bg-[#EB9800] text-white p-3 rounded-md flex items-center justify-center space-x-2"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      <span>Extract Campaign Data</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        // Tab Switching Functionality
+        const tabTriggers = document.querySelectorAll('.tab-trigger');
+        const tabContents = document.querySelectorAll('.tab-content');
+        
+        tabTriggers.forEach(trigger => {
+          trigger.addEventListener('click', () => {
+            (async () => {
+              // Remove active class from all triggers and contents
+              tabTriggers.forEach(t => t.classList.remove('active'));
+              tabContents.forEach(c => c.classList.remove('active'));
+
+              // Add active class to clicked trigger
+              trigger.classList.add('active');
+
+              // Show corresponding tab content
+              const tabId = trigger.getAttribute('data-tab');
+              document.getElementById(tabId + '-tab').classList.add('active');
+
+              // If scheduling tab is activated, run schedule and analysis
+              if (tabId === 'scheduling') {
+                // Prefill campaign details
+                const mapping = [ 
+                  { id: 'smsType', summaryId: 'summary-sms-type' },
+                  { id: 'industrySector', summaryId: 'summary-sector' },
+                  { id: 'operationType', summaryId: 'summary-type-of-operation' },
+                  { id: 'purpose', summaryId: 'summary-purpose-of-sms' }
+                ]
+                mapping.forEach(item => {
+                  const value = document.getElementById(item.id).value;
+                  document.getElementById(item.summaryId).textContent = value;
+                });
+                await generateSchedule();
+                const aiTimingContainer = document.getElementById("aiTimingResults");
+                fetchAITimingData(aiTimingContainer);
+                const modelTimingContainer = document.querySelector('.tab-content#scheduling-tab .shadow-sm:nth-of-type(2) .space-y-4.mt-4');
+                fetchModelTimingData(modelTimingContainer);
+              }
+            })();
+          });
+        });
+        
+        // Link toggle functionality
+        const includeLink = document.getElementById('include-link');
+        const linkTypeContainer = document.getElementById('link-type-container');
+        
+        includeLink.addEventListener('change', function() {
+          if (this.checked) {
+            linkTypeContainer.classList.remove('hidden');
+          } else {
+            linkTypeContainer.classList.add('hidden');
+          }
+        });
+        
+        // Holiday toggle functionality
+        const includeHolidays = document.getElementById('include-holidays');
+        const holidayDateContainer = document.getElementById('holiday-date-container');
+        
+        includeHolidays.addEventListener('change', function() {
+          if (this.checked) {
+            holidayDateContainer.classList.remove('hidden');
+          } else {
+            holidayDateContainer.classList.add('hidden');
+          }
+        });
+        // Date Range toggle functionality
+        const includeDateRange = document.getElementById('include-date-range');
+        const dateRangeContainer = document.getElementById('date-range-container');
+
+        includeDateRange.addEventListener('change', function() {
+          if (this.checked) {
+            dateRangeContainer.classList.remove('hidden');
+          } else {
+            dateRangeContainer.classList.add('hidden');
+          }
+        });
+        
+
+
+        // Function to fetch AI timing data
+        async function fetchAITimingData(container) {
+          const message = document.getElementById('phone-message-preview')?.textContent;
+          const startDate = document.getElementById('date-debut')?.value;
+          const endDate = document.getElementById('date-fin')?.value;
+          container.innerHTML = ''; // Clear any old/default content
+
+          try {
+            const response = await fetch("/ai-timing", {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                operation_type: document.getElementById('operationType').value,
+                sms_type: document.getElementById('smsType').value,
+                sector: document.getElementById('industrySector').value,
+                partner_name: document.getElementById('campaignName').value,
+                short_link_type: document.getElementById('linkType').value || 'externe',
+                sms_orientation: document.getElementById('purpose').value,
+                message: message,
+                date_debut: startDate,
+                date_fin: endDate
+              })
+            });
+
+            const data = await response.json();
+
+            if (data.success && data.valid_combinations) {
+              const combinations = data.valid_combinations;
+              container.innerHTML = ''; // Clear old content
+              let html = '<p class="text-sm text-slate-600">AI has analyzed past campaign performance and predicted the optimal times to send this message:</p>';
+              
+              data.valid_combinations.forEach(combo => {
+                // More robust parsing - handle different formats
+                let day, time;
+                if (combo.includes(' à ')) {
+                  [day, time] = combo.split(' à ');
+                } else if (combo.includes(' at ')) {
+                  [day, time] = combo.split(' at ');
+                } else {
+                  // Fallback - display as is
+                  day = combo;
+                  time = '';
+                }
+                html += `
+                  <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                    <div class="flex justify-between items-center">
+                      <div class="flex space-x-4">
+                        <div class="flex items-center text-indigo-800">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                            <line x1="16" x2="16" y1="2" y2="6"></line>
+                            <line x1="8" x2="8" y1="2" y2="6"></line>
+                            <line x1="3" x2="21" y1="10" y2="10"></line>
+                          </svg>
+                          <span class="font-medium">${day}</span>
+                        </div>
+                        <div class="flex items-center text-indigo-800">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          <span>${time}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>`;
+              });
+
+              html += '<div class="text-xs text-slate-500 mt-2 italic">These times are predicted to have the highest engagement rates based on your audience\'s activity patterns.</div>';
+
+              container.innerHTML = html;
+              // ——— Make AI combos clickable ———
+              container.querySelectorAll('#aiTimingResults .border').forEach(el => {
+                el.style.cursor = 'pointer';
+                el.addEventListener('click', () => {
+                  container.querySelectorAll('.border').forEach(c => c.classList.remove('timing-selected'));
+                  el.classList.add('timing-selected');
+                  // pull day/time from the two <span> elements
+                  const spans = el.querySelectorAll('span');
+                  const day  = spans[0].textContent;
+                  const time = spans[1].textContent;
+
+                  // update the campaign details
+                  document.getElementById('summary-date').textContent = day;
+                  document.getElementById('summary-time').textContent = time;
+                });
+              });
+            } else {
+              container.innerHTML = '<p class="text-red-500">Failed to fetch AI timing data</p>';
+            }
+          } catch (error) {
+            container.innerHTML = '<p class="text-red-500">Error fetching AI timing data</p>';
+          }
+        }
+
+
+        // Function to fetch Model timing data (uses your existing /schedule endpoint)
+        async function fetchModelTimingData(container) {
+          const message = document.getElementById('phone-message-preview').textContent;
+          const startDate = document.getElementById('date-debut').value;
+          const endDate = document.getElementById('date-fin').value;
+          
+          if (!message || !startDate || !endDate) {
+            container.innerHTML = '<p class="text-red-500">Please complete the form and generate a message first</p>';
+            return;
+          }
+
+          try {
+            const response = await fetch('/schedule', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                operation_type: document.getElementById('operationType').value,
+                sms_type: document.getElementById('smsType').value,
+                sector: document.getElementById('industrySector').value,
+                partner_name: document.getElementById('campaignName').value,
+                short_link_type: document.getElementById('linkType').value || 'externe',
+                sms_orientation: document.getElementById('purpose').value,
+                message: message,
+                date_debut: startDate,
+                date_fin: endDate
+              })
+            });
+
+            const data = await response.json();
+            
+            if (data.success && data.top_combinations) {
+              container.innerHTML = ''; // Clear old content
+              let html = '<p class="text-sm text-slate-600">Your custom model has analyzed historical performance and identified the optimal times:</p>';
+              
+              data.top_combinations.forEach(combo => {
+                html += `
+                  <div class="border border-indigo-100 rounded-lg p-4 bg-white hover:bg-indigo-50 transition-colors">
+                    <div class="flex justify-between items-center">
+                      <div class="flex space-x-4">
+                        <div class="flex items-center text-indigo-800">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect width="18" height="18" x="3" y="4" rx="2" ry="2"></rect>
+                            <line x1="16" x2="16" y1="2" y2="6"></line>
+                            <line x1="8" x2="8" y1="2" y2="6"></line>
+                            <line x1="3" x2="21" y1="10" y2="10"></line>
+                          </svg>
+                          <span class="font-medium">${combo.split(' à ')[0]}</span>
+                        </div>
+                        <div class="flex items-center text-indigo-800">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                          </svg>
+                          <span>${combo.split(' à ')[1]}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>`;
+              });
+              html += '<div class="text-xs text-slate-500 mt-2 italic">These times are predicted to have the highest engagement rates based on your audience\'s activity patterns.</div>';
+
+              container.innerHTML = html;
+              // ——— Make Model combos clickable ———
+              container.querySelectorAll('.tab-content#scheduling-tab .shadow-sm:nth-of-type(2) .space-y-4 .border')
+                .forEach(el => {
+                  el.style.cursor = 'pointer';
+                  el.addEventListener('click', () => {
+                    container.querySelectorAll('.border').forEach(c => c.classList.remove('timing-selected'));
+                    el.classList.add('timing-selected');
+                    
+                    const spans = el.querySelectorAll('span');
+                    const day  = spans[0].textContent;
+                    const time = spans[1].textContent;
+
+                    document.getElementById('summary-date').textContent = day;
+                    document.getElementById('summary-time').textContent = time;
+                  });
+                });
+            } else {
+              container.innerHTML = '<p class="text-red-500">Failed to fetch model timing data</p>';
+            }
+          } catch (error) {
+            container.innerHTML = '<p class="text-red-500">Error fetching model timing data</p>';
+          }
+        }
+
+
+
+        // Tab navigation buttons
+        const backToInput = document.getElementById('back-to-input');
+        const continueToScheduling = document.getElementById('continue-to-scheduling');
+        const generateSmsBtn = document.getElementById('generate-sms-btn');
+        
+        if (backToInput) {
+          backToInput.addEventListener('click', () => {
+            tabTriggers.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            tabTriggers[0].classList.add('active');
+            document.getElementById('input-tab').classList.add('active');
+          });
+        }
+        
+        if (continueToScheduling) {
+          continueToScheduling.addEventListener('click', () => {
+            tabTriggers.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            tabTriggers[2].classList.add('active');
+            document.getElementById('scheduling-tab').classList.add('active');
+          });
+        }
+        
+        if (generateSmsBtn) {
+          generateSmsBtn.addEventListener('click', () => {
+            tabTriggers.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(c => c.classList.remove('active'));
+            
+            tabTriggers[1].classList.add('active');
+            document.getElementById('preview-tab').classList.add('active');
+          });
+        }
+        
+        // Date selection functionality
+        const dateOptions = document.querySelectorAll('.date-option');
+        const timeSelectionContainer = document.getElementById('time-selection-container');
+        const selectedDateDisplay = document.getElementById('selected-date-display');
+        
+        dateOptions.forEach(dateOption => {
+          dateOption.addEventListener('click', function() {
+            // Remove selected class from all dates
+            dateOptions.forEach(option => option.classList.remove('date-selected'));
+            
+            // Add selected class to clicked date
+            this.classList.add('date-selected');
+            
+            // Show time selection container
+            timeSelectionContainer.classList.remove('hidden');
+            
+            // Update selected date in the time selection header
+            const dateText = this.querySelector('.font-medium').textContent;
+            selectedDateDisplay.textContent = dateText;
+            
+            // Update summary section with date
+            document.getElementById('summary-date').textContent = dateText;
+            
+            // Update success rate
+            const successRate = this.querySelector('.text-indigo-800').textContent;
+            document.getElementById('success-rate-display').textContent = successRate;
+          });
+        });
+        
+        // Time slot selection
+        const timeSlots = document.querySelectorAll('.time-slot');
+        
+        timeSlots.forEach(timeSlot => {
+          timeSlot.addEventListener('click', function() {
+            // Remove selected class from all time slots
+            timeSlots.forEach(slot => slot.classList.remove('time-selected'));
+            
+            // Add selected class to clicked time slot
+            this.classList.add('time-selected');
+            
+            // Get the time text and success rate
+            const timeText = this.querySelector('.font-medium').textContent;
+            const successRate = this.querySelector('.rounded-full').textContent.trim();
+            
+            // Update summary section with time
+            document.getElementById('summary-time').textContent = timeText;
+            
+            // Update success rate display
+            document.getElementById('success-rate-display').textContent = successRate;
+            
+            // Update performance metrics
+            const successRateNum = parseInt(successRate);
+            document.querySelector('#performance-metrics div:nth-child(1) p:first-child').textContent = successRate;
+            document.querySelector('#performance-metrics div:nth-child(2) p:first-child').textContent = Math.round(successRateNum * 0.5) + '%';
+            document.querySelector('#performance-metrics div:nth-child(3) p:first-child').textContent = Math.round(successRateNum * 0.1) + '%';
+          });
+        });
+        
+        // Dropdown for other times
+        const otherTimesSelect = document.getElementById('other-times');
+        
+        if (otherTimesSelect) {
+          otherTimesSelect.addEventListener('change', function() {
+            if (this.value) {
+              // Deselect all time slots
+              timeSlots.forEach(slot => slot.classList.remove('time-selected'));
+              
+              // Get the selected option text
+              const selectedOption = this.options[this.selectedIndex].text;
+              const timeText = selectedOption.split(' (')[0];
+              const successRate = selectedOption.match(/\((\d+)%\)/)[1] + '%';
+              
+              // Update summary section with time
+              document.getElementById('summary-time').textContent = timeText;
+              
+              // Update success rate display
+              document.getElementById('success-rate-display').textContent = successRate;
+              
+              // Update performance metrics
+              const successRateNum = parseInt(successRate);
+              document.querySelector('#performance-metrics div:nth-child(1) p:first-child').textContent = successRate;
+              document.querySelector('#performance-metrics div:nth-child(2) p:first-child').textContent = Math.round(successRateNum * 0.5) + '%';
+              document.querySelector('#performance-metrics div:nth-child(3) p:first-child').textContent = Math.round(successRateNum * 0.1) + '%';
+            }
+          });
+        }
+        
+        // Update summary with first tab selections
+        const smsTypeSelect = document.getElementById('smsType');
+        const industrySectorSelect = document.getElementById('industrySector');
+        const operationTypeSelect = document.getElementById('operationType');
+        const purposeSelect = document.getElementById('purpose');
+        
+        if (smsTypeSelect) {
+          smsTypeSelect.addEventListener('change', function() {
+            document.getElementById('summary-sms-type').textContent = this.options[this.selectedIndex].text;
+          });
+        }
+        
+        if (industrySectorSelect) {
+          industrySectorSelect.addEventListener('change', function() {
+            document.getElementById('summary-industry').textContent = this.options[this.selectedIndex].text;
+          });
+        }
+        
+        if (operationTypeSelect) {
+          operationTypeSelect.addEventListener('change', function() {
+            document.getElementById('summary-operation-type').textContent = this.options[this.selectedIndex].text;
+          });
+        }
+        
+        if (purposeSelect) {
+          purposeSelect.addEventListener('change', function() {
+            document.getElementById('summary-purpose').textContent = this.options[this.selectedIndex].text;
+          });
+        }
+        
+      });
+    </script>
+    <script>
+      async function generateSMS() {
+        const btn = document.getElementById('generate-sms-btn');
+        const container = document.getElementById('message-options');
+        const preview = document.getElementById('phone-message-preview');
+
+        // 0) Switch to Preview tab
+        document.querySelector('.tab-trigger[data-tab="preview"]').click();
+
+        // 1) Show loading state
+        btn.disabled = true;
+        btn.textContent = 'Generating…';
+        container.innerHTML = `
+          <div class="p-4 text-center text-gray-500">
+            <svg class="animate-spin mx-auto h-6 w-6 mb-2" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z">
+              </path>
+            </svg>
+            Generating messages…
+          </div>`;
+
+        // 2) Gather payload
+        const payload = {
+          smsType:       document.getElementById('smsType').value,
+          sector:        document.getElementById('industrySector').value,
+          operationType: document.getElementById('operationType').value,
+          linkType:      document.getElementById('linkType').value,
+          partnerName:   document.getElementById('campaignName').value,
+          keywords:      document.getElementById('keywords').value,
+          useVariableLink: document.getElementById('include-link').checked,
+          includeHoliday:  document.getElementById('include-holidays').checked,
+          holidayDate:     document.getElementById('holidayDate').value
+        };
+
+        try {
+          // 3) Fetch real messages
+          const res  = await fetch('/generate-sms', {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const json = await res.json();
+
+          if (!json.success) {
+            throw new Error(json.error);
+          }
+
+          // 4) Render real cards
+          container.innerHTML = '';
+          json.sms_messages.forEach((msg, idx) => {
+            const card = document.createElement('div');
+            card.className = 'shadow-sm border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50';
+            card.innerHTML = `
+              <div class="p-4">
+                <div class="flex justify-between items-center mb-2">
+                  <h3 class="text-base font-medium text-indigo-600">Option ${idx+1}</h3>
+                  <span class="text-sm text-slate-500">${msg.length} chars</span>
+                </div>
+                <p class="text-gray-500 text-sm">${msg}</p>
+              </div>`;
+            card.addEventListener('click', () => {
+              preview.textContent = msg;
+            });
+            container.appendChild(card);
+          });
+
+          // 5) Show first in preview
+          preview.textContent = json.sms_messages[0] || '';
+
+        } catch (err) {
+          container.innerHTML = `<p class="text-red-500">Error: ${err.message}</p>`;
+        } finally {
+          // 7) Restore button
+          btn.disabled = false;
+          btn.innerHTML = `
+            Generate SMS
+            <svg xmlns="http://www.w3.org/2000/svg" class="ml-2 h-5 w-5" fill="none"
+                stroke="currentColor" stroke-width="2">
+              <path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path>
+            </svg>`;
+        }
+      }
+
+      document.getElementById('generate-sms-btn')
+              .addEventListener('click', generateSMS);
+    </script>
+
+    <script>
+      async function doSchedule() {
+        // 1) Grab date range
+        const date_debut = document.getElementById('date-debut').value;
+        const date_fin   = document.getElementById('date-fin').value;
+        if (!date_debut || !date_fin) {
+          return alert('Please select both start and end dates.');
+        }
+
+        // 2) Build the exact JSON payload pred_divided.py wants
+        const payload = {
+          date_debut:        date_debut,
+          date_fin:          date_fin,
+          "Type d'opération":  document.getElementById('operationType').value,
+          "Type de SMS":        document.getElementById('smsType').value,
+          "Secteur":            document.getElementById('industrySector').value,
+          "orientation du sms":  document.getElementById('smsOrientation')?.value || '',
+          Message:            document.getElementById('phone-message-preview').textContent
+        };
+
+        // 3) POST to /schedule
+        const resp = await fetch('/schedule', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const json = await resp.json();
+        const container = document.getElementById('schedule-results');
+        container.innerHTML = '';
+
+        // 4) Handle errors
+        if (!json.success) {
+          container.innerHTML = `<p class="text-red-500">Error: ${json.error}</p>`;
+          return;
+        }
+
+        // 5) Render “Suggestions optimales pour envoi du SMS (jours + heures)”
+        const suggestions = json["Suggestions optimales pour envoi du SMS (jours + heures)"];
+        if (suggestions) {
+          container.innerHTML += '<h3 class="font-medium">Optimal Sending Slots</h3>';
+          container.innerHTML += '<ul class="list-disc list-inside mb-4">';
+          for (const [day, hours] of Object.entries(suggestions)) {
+            container.innerHTML += `<li><strong>${day}</strong>: ${hours.join(', ')}</li>`;
+          }
+          container.innerHTML += '</ul>';
+        }
+
+        // 6) Render “Top 3 meilleures combinaisons jour + heure”
+        const top3 = json["Top 3 meilleures combinaisons jour + heure"];
+        if (Array.isArray(top3)) {
+          container.innerHTML += '<h3 class="font-medium">Top 3 Day+Hour Combos</h3>';
+          container.innerHTML += '<ol class="list-decimal list-inside">';
+          top3.forEach(combo => {
+            container.innerHTML += `<li>${combo}</li>`;
+          });
+          container.innerHTML += '</ol>';
+        }
+      }
+
+      // Wire up the Schedule button
+      document.getElementById('do-schedule')
+              .addEventListener('click', doSchedule);
+
+      // And hook “Continue to Scheduling” to both switch tabs and fire doSchedule()
+      document.getElementById('continue-to-scheduling')
+              .addEventListener('click', () => {
+        document.querySelector('.tab-trigger[data-tab="scheduling"]').click();
+        doSchedule();
+        //const aiTimingContainer = document.getElementById('aiTimingResults');
+        //const modelTimingContainer = document.querySelector(...);
+        //fetchModelTimingData(modelTimingContainer); // ✅
+        //fetchAITimingData(aiTimingContainer); 
+      });
+    </script>
+    <script>
+      // generateSchedule function with this:
+      async function generateSchedule() {
+        console.log('Generating schedule...');
+        
+        // Validate required fields
+        const dateDebut = document.getElementById('date-debut').value;
+        const dateFin = document.getElementById('date-fin').value;
+        const message = document.getElementById('phone-message-preview').textContent;
+        
+        if (!dateDebut || !dateFin) {
+          alert('Please select both start and end dates in the Input tab.');
+          return;
+        }
+        
+        if (!message || message === 'Your message will appear here after generation') {
+          alert('Please generate a message first in the Message Preview tab.');
+          return;
+        }
+
+        // Collect all data
+        const payload = {
+          operation_type: document.getElementById('operationType').value || 'prospection',
+          sms_type: document.getElementById('smsType').value || 'simple',
+          sector: document.getElementById('industrySector').value || 'services',
+          partner_name: document.getElementById('campaignName').value || 'Campaign',
+          short_link_type: document.getElementById('linkType').value || 'externe',
+          sms_orientation: document.getElementById('purpose').value || 'information',
+          message: message,
+          date_debut: dateDebut,
+          date_fin: dateFin
+        };
+
+        console.log('Payload:', payload);
+
+        try {
+          const response = await fetch('/schedule', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const result = await response.json();
+          console.log('Schedule result:', result);
+
+          if (!result.success) {
+            alert(`Schedule error: ${result.error}`);
+            return;
+          }
+
+          // Render the recommended dates
+          renderRecommendedDates(result);
+          
+          // Pre-fill summary message
+          document.getElementById('summary-message').textContent = payload.message;
+          
+        } catch (error) {
+          console.error('Schedule error:', error);
+          alert(`Network error: ${error.message}`);
+        }
+      }
+
+      function renderRecommendedDates(result) {
+        const dateOptions = document.getElementById('date-options');
+        if (!dateOptions) {
+          console.error('date-options element not found');
+          return;
+        }
+        
+        dateOptions.innerHTML = '';
+        
+        if (!result.ordered_days || result.ordered_days.length === 0) {
+          dateOptions.innerHTML = '<p class="text-gray-500">No recommended dates found</p>';
+          return;
+        }
+
+        result.ordered_days.forEach((day, i) => {
+          const div = document.createElement('div');
+          div.className = 'date-option flex items-center justify-between p-3 rounded-md cursor-pointer border hover:bg-gray-50';
+          div.innerHTML = `
+            <span class="font-medium">${day}</span>
+            <span class="text-xs bg-orange-100 text-orange-800 px-2 py-1 rounded-full">${getOrdinal(i+1)} choice</span>
+          `;
+          div.onclick = () => selectDate(day, result);
+          dateOptions.appendChild(div);
+        });
+      }
+
+      function getOrdinal(n) {
+        const suffixes = ['th', 'st', 'nd', 'rd'];
+        const v = n % 100;
+        return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
+      }
+
+      function selectDate(day, result) {
+        // Remove selection from all dates
+        document.querySelectorAll('#date-options .date-option')
+          .forEach(d => d.classList.remove('date-selected'));
+        
+        // Add selection to clicked date
+        const selectedDiv = Array.from(document.querySelectorAll('#date-options .date-option'))
+          .find(d => d.textContent.includes(day));
+        if (selectedDiv) {
+          selectedDiv.classList.add('date-selected');
+        }
+
+        // Show time selection
+        document.getElementById('selected-date-display').textContent = day;
+        document.getElementById('time-selection-container').classList.remove('hidden');
+
+        // Render times for selected day
+        renderTimesForDay(day, result);
+        
+        // Update summary
+        document.getElementById('summary-date').textContent = day;
+      }
+
+      function renderTimesForDay(day, result) {
+        const container = document.getElementById('time-slots-container');
+        if (!container) {
+          console.error('time-slots-container not found');
+          return;
+        }
+        
+        container.innerHTML = '';
+        
+        const times = result.times_by_day && result.times_by_day[day] ? result.times_by_day[day] : [];
+        
+        if (times.length === 0) {
+          container.innerHTML = '<p class="text-gray-500">No recommended times for this day</p>';
+          return;
+        }
+
+        times.forEach((time, i) => {
+          const div = document.createElement('div');
+          div.className = 'time-slot flex items-center justify-between p-3 rounded-md border cursor-pointer hover:bg-gray-50';
+          const badges = ['Best', '2nd', '3rd'];
+          div.innerHTML = `
+            <span class="font-medium">${time}</span>
+            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">${badges[i] || (i+1)+'th'}</span>
+          `;
+          div.onclick = () => selectTime(day, time);
+          container.appendChild(div);
+        });
+      }
+
+      function selectTime(day, time) {
+        // Remove selection from all time slots
+        document.querySelectorAll('#time-slots-container .time-slot')
+          .forEach(d => d.classList.remove('time-selected'));
+        
+        // Add selection to clicked time
+        event.currentTarget.classList.add('time-selected');
+
+        // Update summary
+        document.getElementById('summary-date').textContent = day;
+        document.getElementById('summary-time').textContent = time;
+      }
+
+      document.getElementById('continue-to-scheduling')
+              .addEventListener('click', async () => {
+        // switch tab
+        document.querySelector('.tab-trigger[data-tab="scheduling"]').click();
+        // kick off schedule
+        await generateSchedule();
+        // Trigger AI and Model timing fetches
+        const aiTimingContainer = document.getElementById('aiTimingResults');
+        const modelTimingContainer = document.querySelector('.tab-content#scheduling-tab .shadow-sm:nth-of-type(2) .space-y-4.mt-4');
+        fetchModelTimingData(modelTimingContainer);
+        fetchAITimingData(aiTimingContainer); 
+      });
+    </script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const exportDataBtn = document.getElementById('export-data-btn');
+        if (exportDataBtn) {
+          exportDataBtn.addEventListener('click', function () {
+            const campaignData = {
+              campaignName: document.getElementById('campaignName').value,
+              smsType: document.getElementById('smsType').value,
+              industrySector: document.getElementById('industrySector').value,
+              operationType: document.getElementById('operationType').value,
+              purpose: document.getElementById('purpose').value,
+              keywords: document.getElementById('keywords').value,
+              includeLink: document.getElementById('include-link').checked,
+              linkType: document.getElementById('linkType').value,
+              includeHolidays: document.getElementById('include-holidays').checked,
+              holidayDate: document.getElementById('holidayDate').value,
+              dateStart: document.getElementById('date-debut').value,
+              dateEnd: document.getElementById('date-fin').value,
+              selectedDate: document.getElementById('summary-date').textContent,
+              selectedTime: document.getElementById('summary-time').textContent,
+              message: document.getElementById('summary-message').textContent,
+            };
+
+            const dataStr = JSON.stringify(campaignData, null, 2);
+            const dataBlob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `sms-campaign-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            alert('Campaign data exported successfully!');
+          });
+        }
+      });
+    </script>
+  </body>
+</html>
